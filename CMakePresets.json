@@ -1,0 +1,196 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 25, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "${sourceDir}/install",
+      "cacheVariables": {
+        "GODOTCPP_API_VERSION": "4.7"
+      }
+    },
+    {
+      "name": "windows-x86_64",
+      "hidden": true,
+      "inherits": "base",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64"
+    },
+    {
+      "name": "windows-x86_64-debug",
+      "displayName": "Windows x86_64 / template_debug",
+      "description": "编辑器加载的变体",
+      "inherits": "windows-x86_64",
+      "cacheVariables": { "GODOTCPP_TARGET": "template_debug" }
+    },
+    {
+      "name": "windows-x86_64-release",
+      "displayName": "Windows x86_64 / template_release",
+      "description": "导出发布包加载的变体",
+      "inherits": "windows-x86_64",
+      "cacheVariables": { "GODOTCPP_TARGET": "template_release" }
+    },
+    {
+      "name": "linux-arm64",
+      "hidden": true,
+      "inherits": "base",
+      "generator": "Ninja",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/linux-arm64.cmake",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
+    },
+    {
+      "name": "linux-arm64-debug",
+      "displayName": "Linux arm64 / template_debug",
+      "description": "需要 aarch64-linux-gnu 工具链；Windows 宿主请在 WSL2 或 Docker 中执行",
+      "inherits": "linux-arm64",
+      "cacheVariables": { "GODOTCPP_TARGET": "template_debug" }
+    },
+    {
+      "name": "linux-arm64-release",
+      "displayName": "Linux arm64 / template_release",
+      "description": "需要 aarch64-linux-gnu 工具链；Windows 宿主请在 WSL2 或 Docker 中执行",
+      "inherits": "linux-arm64",
+      "cacheVariables": { "GODOTCPP_TARGET": "template_release" }
+    },
+    {
+      "name": "android-arm64",
+      "hidden": true,
+      "inherits": "base",
+      "generator": "Ninja",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/android-arm64.cmake",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
+    },
+    {
+      "name": "android-arm64-debug",
+      "displayName": "Android arm64 / template_debug",
+      "description": "需要 Android NDK，位置取自 ANDROID_NDK 环境变量",
+      "inherits": "android-arm64",
+      "cacheVariables": { "GODOTCPP_TARGET": "template_debug" }
+    },
+    {
+      "name": "android-arm64-release",
+      "displayName": "Android arm64 / template_release",
+      "description": "需要 Android NDK，位置取自 ANDROID_NDK 环境变量",
+      "inherits": "android-arm64",
+      "cacheVariables": { "GODOTCPP_TARGET": "template_release" }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-x86_64-debug",
+      "configurePreset": "windows-x86_64-debug",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "windows-x86_64-release",
+      "configurePreset": "windows-x86_64-release",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "windows-x86_64-debug-install",
+      "configurePreset": "windows-x86_64-debug",
+      "configuration": "RelWithDebInfo",
+      "targets": ["install"]
+    },
+    {
+      "name": "windows-x86_64-release-install",
+      "configurePreset": "windows-x86_64-release",
+      "configuration": "RelWithDebInfo",
+      "targets": ["install"]
+    },
+    {
+      "name": "linux-arm64-debug",
+      "configurePreset": "linux-arm64-debug"
+    },
+    {
+      "name": "linux-arm64-release",
+      "configurePreset": "linux-arm64-release"
+    },
+    {
+      "name": "linux-arm64-debug-install",
+      "configurePreset": "linux-arm64-debug",
+      "targets": ["install"]
+    },
+    {
+      "name": "linux-arm64-release-install",
+      "configurePreset": "linux-arm64-release",
+      "targets": ["install"]
+    },
+    {
+      "name": "android-arm64-debug",
+      "configurePreset": "android-arm64-debug"
+    },
+    {
+      "name": "android-arm64-release",
+      "configurePreset": "android-arm64-release"
+    },
+    {
+      "name": "android-arm64-debug-install",
+      "configurePreset": "android-arm64-debug",
+      "targets": ["install"]
+    },
+    {
+      "name": "android-arm64-release-install",
+      "configurePreset": "android-arm64-release",
+      "targets": ["install"]
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "windows-x86_64-debug",
+      "displayName": "Windows x86_64 / template_debug：配置、构建并安装",
+      "steps": [
+        { "type": "configure", "name": "windows-x86_64-debug" },
+        { "type": "build", "name": "windows-x86_64-debug" },
+        { "type": "build", "name": "windows-x86_64-debug-install" }
+      ]
+    },
+    {
+      "name": "windows-x86_64-release",
+      "displayName": "Windows x86_64 / template_release：配置、构建并安装",
+      "steps": [
+        { "type": "configure", "name": "windows-x86_64-release" },
+        { "type": "build", "name": "windows-x86_64-release" },
+        { "type": "build", "name": "windows-x86_64-release-install" }
+      ]
+    },
+    {
+      "name": "linux-arm64-debug",
+      "displayName": "Linux arm64 / template_debug：配置、构建并安装",
+      "steps": [
+        { "type": "configure", "name": "linux-arm64-debug" },
+        { "type": "build", "name": "linux-arm64-debug" },
+        { "type": "build", "name": "linux-arm64-debug-install" }
+      ]
+    },
+    {
+      "name": "linux-arm64-release",
+      "displayName": "Linux arm64 / template_release：配置、构建并安装",
+      "steps": [
+        { "type": "configure", "name": "linux-arm64-release" },
+        { "type": "build", "name": "linux-arm64-release" },
+        { "type": "build", "name": "linux-arm64-release-install" }
+      ]
+    },
+    {
+      "name": "android-arm64-debug",
+      "displayName": "Android arm64 / template_debug：配置、构建并安装",
+      "steps": [
+        { "type": "configure", "name": "android-arm64-debug" },
+        { "type": "build", "name": "android-arm64-debug" },
+        { "type": "build", "name": "android-arm64-debug-install" }
+      ]
+    },
+    {
+      "name": "android-arm64-release",
+      "displayName": "Android arm64 / template_release：配置、构建并安装",
+      "steps": [
+        { "type": "configure", "name": "android-arm64-release" },
+        { "type": "build", "name": "android-arm64-release" },
+        { "type": "build", "name": "android-arm64-release-install" }
+      ]
+    }
+  ]
+}

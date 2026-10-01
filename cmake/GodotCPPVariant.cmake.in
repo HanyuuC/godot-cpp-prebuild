@@ -1,0 +1,27 @@
+#[=======================================================================[.rst:
+
+GodotCPPVariant.cmake
+---------------------
+
+本文件由 godot-cpp-prebuild 在安装时生成，记录该变体的构建坐标与工具链信息。
+只被上级目录的 GodotCPPConfig.cmake 读取，不是对外接口，请勿直接 include。
+
+]=======================================================================]
+
+set(GodotCPP_VARIANT_PATH "@_variant_rel@")
+set(GodotCPP_API_VERSION "@GODOTCPP_API_VERSION@")
+set(GodotCPP_PLATFORM "@_platform@")
+set(GodotCPP_ARCH "@_arch@")
+set(GodotCPP_TARGET "@GODOTCPP_TARGET@")
+set(GodotCPP_PRECISION "@GODOTCPP_PRECISION@")
+set(GodotCPP_THREADS "@GODOTCPP_THREADS@")
+set(GodotCPP_DEV_BUILD "@GODOTCPP_DEV_BUILD@")
+
+# 库文件名后缀（feature tags）：.<platform>.<target>[.dev][.double].<arch>[.nothreads]。
+# 消费端也用它拼装自己扩展库的文件名，从而与 .gdextension 里的路径声明一致。
+set(GodotCPP_SUFFIX "@_suffix@")
+
+# 构建该变体所用的工具链。静态链接要求消费端 ABI 兼容。
+set(GodotCPP_COMPILER_ID "@CMAKE_CXX_COMPILER_ID@")
+set(GodotCPP_COMPILER_VERSION "@CMAKE_CXX_COMPILER_VERSION@")
+set(GodotCPP_MSVC_RUNTIME_LIBRARY "@_msvc_runtime@")
