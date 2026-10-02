@@ -60,16 +60,24 @@ cmake --build --preset windows-x86_64-debug-install
 
 新变体安装到 `install/4.7/windows-x86_64/template_debug/double-withthreads/`，与既有的 `single-withthreads` 并存。
 
-## 构建侧配置项
+## 预编译配置项
 
 - `GODOTCPP_VENDOR_DIR` — godot-cpp 源码目录，默认 `<本工程>/godot-cpp`
 - `GODOTCPP_API_VERSION` — 目标 Godot API 版本，取值需对应 `godot-cpp/gdextension/extension_api-<版本>.json`；CMake 配置时会检查这个版本在 godot-cpp 里是否存在，拼错会直接报错并列出可用版本
-- `GODOTCPP_TARGET` — `template_debug`（编辑器加载）| `template_release`（导出包加载）| `editor`
+- `GODOTCPP_TARGET` — `template_debug`（编辑器加载）| `template_release`（导出包加载）| `editor`；其中`template_debug` 采用 `RelWithDebInfo` 构建配置，`template_release` 采用 `Release` 构建配置
 - `GODOTCPP_PRECISION` — `single` | `double`，决定 `real_t` 的定义，与消费端 ABI 相关
 - `GODOTCPP_THREADS` — Godot 的 `threads` 特性开关，默认 `ON`；置 `OFF` 的产物文件名带 `.nothreads` 段
 - `GODOTCPP_DEV_BUILD` — godot-cpp 自带的开发构建开关，该选项面向 godot-cpp 开发者，默认 `OFF`。设为 `ON` 时会定义 `DEV_ENABLED`、关掉内联与优化（`-O0 -fno-omit-frame-pointer`）、把调试信息提到 `-g3`，并启用只在开发期生效的内部检查。本工程暂不支持设为 `ON`：它会让库文件名多出 `.dev` 段，而目录名中不包含 `.dev`，dev 与非 dev 的产物就会安装进同一个目录互相覆盖；如需支持，需要先将 dev 纳入目录命名。这些编译选项在 godot-cpp 中声明为 PUBLIC，会传递给链接它的工程，因此开启该选项后消费端的优化等级也会随之降低
 
 平台与架构由工具链决定，没有单独的开关可以手工指定，避免选到与当前工具链 ABI 不兼容的预编译库。Visual Studio 生成器读 `CMAKE_VS_PLATFORM_NAME`，其余读 `CMAKE_SYSTEM_NAME` 与 `CMAKE_SYSTEM_PROCESSOR`。
+
+> [!NOTE] 消费端的构建配置
+>
+> 消费端选用的构建配置可以与本项目预编译库采用不同构建配置，例如：`template_release` 预编译变体以 Release 构建，消费端以 Debug 或 RelWithDebInfo 配置构建时可以链接。
+>
+> MSVC 上 Debug 与 Release 默认使用不同的 CRT（`/MDd` 与 `/MD`，或 `/MTd` 与 `/MT`），STL 调试级别也随之不同，混用会在链接期报错 LNK2038。本项目把预编译库与消费端的 C 运行库统一为 `/MT`，CRT 与 STL 调试级别因此一致，因此支持使用者以与预编译库不同的构建配置链接。
+>
+> Linux 与 Android 上，Debug 与 Release 的差别在优化等级、调试信息与 `NDEBUG`，三者都不进入 ABI 与符号签名，默认不影响不同构建配置链接。
 
 ## 消费端接入
 
