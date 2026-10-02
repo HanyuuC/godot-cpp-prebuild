@@ -6,7 +6,7 @@
 
 GDExtension 工程通常把 godot-cpp 作为子目录引入，每新建一个插件工程都需要重新编译上千个绑定翻译单元。本工程将 godot-cpp 独立编译并按变体安装，插件工程改为链接编译好的静态库，godot-cpp 仅在升级 API 版本或更换变体时重编。
 
-- godot-cpp 源码保持上游原样，不改动任何文件与脚本，升级时直接替换目录即可
+- godot-cpp 源码保持上游原样，不改动任何文件与脚本，升级时在子模块内切换 commit 即可
 - 每个变体安装在独立目录里，多个配置可以在同一安装前缀下长期共存、互不覆盖
 
 ## 产物布局
@@ -34,6 +34,8 @@ install/
 一个变体指这四组配置的一次具体取值：API 版本、平台与架构、target、精度与线程。其中任何一项取新值就会多安装出一个新目录，已有的变体不受影响。
 
 ## 快速开始
+
+godot-cpp 作为 git submodule 放在 `godot-cpp/`，执行 `git submodule update --init` 进行 submodule 初始化
 
 在 Windows x64 上使用 workflow preset 构建并安装全部常用变体，每个 workflow preset 内部依次完成配置、构建、安装三步：
 
