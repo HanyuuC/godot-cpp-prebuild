@@ -3,7 +3,7 @@
 GodotCPPConfig.cmake
 --------------------
 
-godot-cpp 预编译包的入口，由 ``find_package(GodotCPP CONFIG)`` 加载。
+godot-cpp 预编译包的配置文件，由 ``find_package(GodotCPP CONFIG)`` 加载。
 
 定位::
 
@@ -30,10 +30,10 @@ godot-cpp 预编译包的入口，由 ``find_package(GodotCPP CONFIG)`` 加载�
 * ``GodotCPP_FOUND``        是否找到
 * ``GodotCPP_API_VERSION``  包对应的 Godot API 版本，如 4.7，可直接用作
   .gdextension 的 ``compatibility_minimum``
-* ``GodotCPP_VARIANT_DIR``  实际命中的变体目录
+* ``GodotCPP_VARIANT_DIR``  实际选中的变体目录
 * ``GodotCPP_SUFFIX``       库文件名后缀，如 ``.windows.template_debug.x86_64``
 * ``GodotCPP_PLATFORM`` / ``GodotCPP_ARCH`` / ``GodotCPP_TARGET`` /
-  ``GodotCPP_PRECISION`` / ``GodotCPP_THREADS``  实际命中的变体坐标
+  ``GodotCPP_PRECISION`` / ``GodotCPP_THREADS``  实际选中的那一组配置
 
 导入目标
 --------
@@ -44,7 +44,7 @@ godot-cpp 预编译包的入口，由 ``find_package(GodotCPP CONFIG)`` 加载�
 同时兼容按目标属性读取：``GODOTCPP_PLATFORM`` / ``GODOTCPP_TARGET`` /
 ``GODOTCPP_ARCH`` / ``GODOTCPP_PRECISION`` / ``GODOTCPP_SUFFIX``。
 
-另外本文件会加载 ``GodotCPPDoc.cmake``，因此在消费端可直接调用
+本文件同时加载 ``GodotCPPDoc.cmake``，因此在消费端可直接调用
 ``target_doc_sources(<target> <xml 列表>)`` 生成编辑器内嵌文档。
 
 ]=======================================================================]
@@ -57,7 +57,7 @@ endif()
 include("${CMAKE_CURRENT_LIST_DIR}/GodotCPPPlatform.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/GodotCPPDoc.cmake")
 
-# ---- 1. 解析变体坐标 ----
+# ---- 1. 解析变体配置 ----
 godotcpp_target_platform(_platform)
 godotcpp_target_arch(_arch)
 
@@ -80,7 +80,7 @@ endif()
 set(GodotCPP_VARIANT_DIR
     "${CMAKE_CURRENT_LIST_DIR}/${_platform}-${_arch}/${GODOTCPP_TARGET}/${GODOTCPP_PRECISION}-${_threads}")
 
-# ---- 2. 命中检查 ----
+# ---- 2. 检查该变体是否已安装 ----
 if(NOT EXISTS "${GodotCPP_VARIANT_DIR}/GodotCPPVariant.cmake"
         OR NOT EXISTS "${GodotCPP_VARIANT_DIR}/GodotCPPTargets.cmake")
     godotcpp_variant_list(_available "${CMAKE_CURRENT_LIST_DIR}")
@@ -124,7 +124,7 @@ if(GodotCPP_MSVC_RUNTIME_LIBRARY)
     endif()
 endif()
 
-# ---- 4. 回填目标属性 ----
+# ---- 4. 写入目标属性 ----
 # godot::cpp 时代按目标属性读取的做法在这里继续可用。
 set_target_properties(GodotCPP::cpp PROPERTIES
     GODOTCPP_PLATFORM "${GodotCPP_PLATFORM}"

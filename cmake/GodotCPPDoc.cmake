@@ -14,7 +14,7 @@ GodotCPPConfig.cmake 会自动加载本文件，消费端无需处理 CMAKE_MODU
 
 与上游 GodotCPPModule.cmake 的差别：脚本随包安装，用
 ``CMAKE_CURRENT_FUNCTION_LIST_DIR`` 定位；Python 只在真正调用本函数时才查找，
-不让不用文档的工程背这个依赖。
+因此没有文档目录的工程不需要安装 Python。
 
 ]=======================================================================]
 

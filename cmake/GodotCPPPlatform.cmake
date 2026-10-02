@@ -4,7 +4,7 @@ GodotCPPPlatform.cmake
 ----------------------
 
 把 CMake 的平台/架构标识归一化成 Godot 的 platform token 与 arch 名，并复现
-godot-cpp 的库文件名后缀拼装规则。
+godot-cpp 的库文件名后缀拼接规则。
 
 预编译工程与安装后的 GodotCPPConfig.cmake 共用这一份实现，因此构建侧与消费侧对
 变体目录名、库文件后缀的理解始终一致。文件只依赖 CMake 内建变量，不依赖 godot-cpp

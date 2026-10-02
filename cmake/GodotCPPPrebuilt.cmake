@@ -3,7 +3,7 @@
 GodotCPPPrebuilt.cmake
 ----------------------
 
-godot-cpp-prebuild 的构建侧逻辑：声明配置项、校验变体坐标、把 godot-cpp 安装成
+godot-cpp-prebuild 的构建侧逻辑：声明配置项、校验变体配置、把 godot-cpp 安装成
 可被 ``find_package(GodotCPP)`` 发现的预编译包。
 
 本文件与 GodotCPPPlatform.cmake 都只依赖 CMake 内建变量，不依赖调用者的目录作用域，
@@ -22,7 +22,7 @@ function(godotcpp_prebuilt_options)
     set(GODOTCPP_VENDOR_DIR "${_root}/godot-cpp" CACHE PATH
         "godot-cpp 源码目录（保持上游原样，不做修改）")
 
-    # ---- 变体坐标 ----
+    # ---- 变体配置 ----
     # 前三项每取一个新值，install/ 下就多出一个可与之共存的目录。
     set(GODOTCPP_API_VERSION "" CACHE STRING
         "目标 Godot API 版本，对应 godot-cpp/gdextension/extension_api-<版本>.json")
@@ -38,7 +38,7 @@ function(godotcpp_prebuilt_options)
 endfunction()
 
 # --- godotcpp_prebuilt_install ---
-# 生成变体元数据、导出 GodotCPP::cpp 目标、安装头文件与静态库、安装包入口文件。
+# 生成变体元数据、导出 GodotCPP::cpp 目标、安装头文件与静态库、安装包配置文件。
 # 必须在 add_subdirectory(godot-cpp) 之后调用。
 function(godotcpp_prebuilt_install)
     godotcpp_target_platform(_platform)
@@ -78,7 +78,7 @@ function(godotcpp_prebuilt_install)
         EXPORT GodotCPPTargets
         ARCHIVE DESTINATION "${_variant_rel}/lib"
         # INCLUDES DESTINATION 会被写成 $<INSTALL_INTERFACE:>，相对安装前缀解析，
-        # 而 GodotCPPTargets.cmake 位于 4 层深的变体目录里，_IMPORT_PREFIX 会回退到
+        # 而 GodotCPPTargets.cmake 位于变体目录内，相对安装前缀有 4 级子目录，_IMPORT_PREFIX 会回退到
         # 安装前缀，因此这里必须给出从安装前缀算起的完整相对路径。
         INCLUDES DESTINATION "${_variant_rel}/include"
     )
@@ -104,7 +104,7 @@ function(godotcpp_prebuilt_install)
         DESTINATION "${_variant_rel}"
     )
 
-    # ---- 包入口 ----
+    # ---- 包配置文件 ----
     # 与变体目录同级，因此多个 API 版本共用同一个安装前缀也不会互相覆盖。
     install(FILES
         "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/GodotCPPConfig.cmake"
@@ -117,7 +117,7 @@ function(godotcpp_prebuilt_install)
 endfunction()
 
 # --- godotcpp_prebuilt_root ---
-# 本工程根目录。由本文件所在目录（cmake/）上溯一级得到，不读调用者作用域的变量，
+# 本工程根目录。由本文件所在目录（cmake/）的父目录得到，不读调用者作用域的变量，
 # 因此函数在任意位置调用都指向同一个目录。
 function(godotcpp_prebuilt_root OUTVAR)
     get_filename_component(_dir "${CMAKE_CURRENT_FUNCTION_LIST_DIR}" DIRECTORY)
@@ -125,7 +125,7 @@ function(godotcpp_prebuilt_root OUTVAR)
 endfunction()
 
 # --- godotcpp_prebuilt_validate ---
-# 尽早拦下拼错的坐标，避免错误一路走到加载期才暴露。
+# 尽早拦下拼错的取值，避免错误留到加载时才发现。
 function(godotcpp_prebuilt_validate)
     if(NOT EXISTS "${GODOTCPP_VENDOR_DIR}/CMakeLists.txt")
         message(FATAL_ERROR
@@ -161,10 +161,10 @@ function(godotcpp_prebuilt_validate)
     endif()
 
     # dev build 会让库文件名多出 .dev 段，而变体目录不含该信息，
-    # 于是 dev 与非 dev 产物会落到同一个目录里互相覆盖。
+    # dev 与非 dev 产物因此会安装到同一个目录里互相覆盖。
     if(GODOTCPP_DEV_BUILD)
         message(FATAL_ERROR
             "不支持 GODOTCPP_DEV_BUILD=ON：.dev 段无法体现在变体目录上，会与非 dev 产物互相覆盖。"
-            "如需 dev 构建，请先把 dev 加入变体坐标。")
+            "如需 dev 构建，请先把 dev 加入变体目录命名。")
     endif()
 endfunction()

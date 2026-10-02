@@ -9,21 +9,21 @@ godot-cpp-prebuild
 
 产物布局（相对 ``CMAKE_INSTALL_PREFIX``，默认为 ``<本工程>/install``）::
 
-    <API>/GodotCPPConfig.cmake                包入口，find_package(GodotCPP) 的落点
+    <API>/GodotCPPConfig.cmake                find_package(GodotCPP) 读取的包配置文件
     <API>/GodotCPPConfigVersion.cmake
     <API>/GodotCPPPlatform.cmake              平台归一化，构建侧与消费侧共用同一份实现
     <API>/GodotCPPDoc.cmake                   文档生成支持，定义 target_doc_sources()
     <API>/doc_source_generator.py
     <API>/<platform>-<arch>/<target>/<precision>-<threads>/
-        GodotCPPVariant.cmake                 本变体的构建坐标与工具链信息
+        GodotCPPVariant.cmake                 记录本变体的配置项与工具链信息
         GodotCPPTargets.cmake                 导出的 GodotCPP::cpp 目标
         GodotCPPTargets-<config>.cmake
         include/                              静态头 + 构建期生成的绑定头
         lib/                                  godot-cpp 静态库
 
-一个变体由四组坐标确定：API 版本、平台与架构、target、精度与线程。四者每取一个
-新值就落在新的目录里，因此任意多个配置天然共存、互不覆盖。平台与架构由工具链决定，
-不提供手工开关。
+一个变体指这四组配置的一次具体取值：API 版本、平台与架构、target、精度与线程。
+其中任何一项取新值就会多安装出一个新目录，因此任意多个配置天然共存、互不覆盖。
+平台与架构由工具链决定，没有单独的开关可以手工指定。
 
 构建与安装::
 
