@@ -1,6 +1,6 @@
 # godot-cpp-prebuild
 
-把 [godot-cpp](https://github.com/godotengine/godot-cpp) 编译成一组预编译包，供多个 GDExtension 插件工程共用。
+把 [godot-cpp](https://github.com/godotengine/godot-cpp) 编译为预编译包，支持一次编译，多个 GDExtension 插件工程复用。
 
 ## 解决的问题
 
@@ -31,7 +31,7 @@ install/
             └── single-withthreads/
 ```
 
-一个变体指这四组配置的一次具体取值：API 版本、平台与架构、target、精度与线程。其中任何一项取新值就会多安装出一个新目录，已有的变体不受影响。
+一个变体指这四组配置的一次具体取值：API 版本、平台与架构、godot_target、精度与线程。其中任何一项取新值就会多安装出一个新目录，已有的变体不受影响。
 
 ## 快速开始
 
@@ -66,9 +66,9 @@ cmake --build --preset windows-x86_64-debug-install
 
 - `GODOTCPP_VENDOR_DIR` — godot-cpp 源码目录，默认 `<本工程>/godot-cpp`
 - `GODOTCPP_API_VERSION` — 目标 Godot API 版本，取值需对应 `godot-cpp/gdextension/extension_api-<版本>.json`；CMake 配置时会检查这个版本在 godot-cpp 里是否存在，拼错会直接报错并列出可用版本
-- `GODOTCPP_TARGET` — `template_debug`（编辑器加载）| `template_release`（导出包加载）| `editor`；其中`template_debug` 采用 `RelWithDebInfo` 构建配置，`template_release` 采用 `Release` 构建配置
-- `GODOTCPP_PRECISION` — `single` | `double`，决定 `real_t` 的定义，与消费端 ABI 相关
-- `GODOTCPP_THREADS` — Godot 的 `threads` 特性开关，默认 `ON`；置 `OFF` 的产物文件名带 `.nothreads` 段
+- `GODOTCPP_TARGET` — 决定编译库面向的运行程序类型，取值：`template_debug`（debug导出包加载）| `template_release`（release导出包加载）| `editor`（编辑器加载，可采用`template_debug`）。其中`template_debug` 采用 `RelWithDebInfo` 构建配置，`template_release` 采用 `Release` 构建配置
+- `GODOTCPP_PRECISION` — 决定 `real_t` 的定义为单精度/双精度浮点数，与消费端 ABI 相关，取值 `single` | `double`，
+- `GODOTCPP_THREADS` — godot-cpp 的 `threads` 特性开关，默认 `ON`；置 `OFF` 的产物文件名带 `.nothreads` 段
 - `GODOTCPP_DEV_BUILD` — godot-cpp 自带的开发构建开关，该选项面向 godot-cpp 开发者，默认 `OFF`。设为 `ON` 时会定义 `DEV_ENABLED`、关掉内联与优化（`-O0 -fno-omit-frame-pointer`）、把调试信息提到 `-g3`，并启用只在开发期生效的内部检查。本工程暂不支持设为 `ON`：它会让库文件名多出 `.dev` 段，而目录名中不包含 `.dev`，dev 与非 dev 的产物就会安装进同一个目录互相覆盖；如需支持，需要先将 dev 纳入目录命名。这些编译选项在 godot-cpp 中声明为 PUBLIC，会传递给链接它的工程，因此开启该选项后消费端的优化等级也会随之降低
 
 平台与架构由工具链决定，没有单独的开关可以手工指定，避免选到与当前工具链 ABI 不兼容的预编译库。Visual Studio 生成器读 `CMAKE_VS_PLATFORM_NAME`，其余读 `CMAKE_SYSTEM_NAME` 与 `CMAKE_SYSTEM_PROCESSOR`。
@@ -86,9 +86,9 @@ cmake --build --preset windows-x86_64-debug-install
 ### 消费端配置项
 
 - `GodotCPP_DIR` — 预编译包目录，指向 `install/<API 版本>/` 中 `GodotCPPConfig.cmake`文件所在目录。必须设置
-- `GODOTCPP_TARGET` — `template_debug`（编辑器加载）| `template_release`（导出包加载）| `editor`。未设置时默认为 `template_debug`；该变量不跟随 `CMAKE_BUILD_TYPE`，用 Release 配置构建时同样需要显式指定 `template_release`
-- `GODOTCPP_PRECISION` — `single` | `double`。未设置时默认为 `single`
-- `GODOTCPP_THREADS` — `ON` | `OFF`。未设置时默认为 `ON`
+- `GODOTCPP_TARGET` — 决定编译库面向的运行程序类型，取值 `template_debug`（debug导出包加载）| `template_release`（release导出包加载）| `editor`（编辑器加载，可采用`template_debug`）。未设置时默认为 `template_debug`；该变量不跟随 `CMAKE_BUILD_TYPE`，用 Release 配置构建时同样需要显式指定 `template_release`
+- `GODOTCPP_PRECISION` — 决定 `real_t` 的定义为单精度/双精度浮点数，取值 `single` | `double`。未设置时默认为 `single`
+- `GODOTCPP_THREADS` — 决定 godot-cpp 线程特性是否启用，取值 `ON` | `OFF`。未设置时默认为 `ON`
 
 平台与架构没有配置项，由工具链决定。交叉编译时用 `CMAKE_TOOLCHAIN_FILE` 指定工具链文件即可。
 
@@ -152,7 +152,7 @@ endif()
 
 Python 3.4+ 只在真正调用该函数时才查找，所以没有文档目录的工程不需要安装 Python。
 
-## 新增平台
+## 如何新增平台
 
 以新增 Linux arm64 为例，已有的两个交叉平台按以下方式组织：
 
