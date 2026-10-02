@@ -6,7 +6,7 @@
 
 GDExtension 工程通常把 godot-cpp 作为子目录引入，每新建一个插件工程都需要重新编译上千个绑定翻译单元。本工程将 godot-cpp 独立编译并按变体安装，插件工程改为链接编译好的静态库，godot-cpp 仅在升级 API 版本或更换变体时重编。
 
-- godot-cpp 源码保持上游原样，不改动任何文件与脚本，升级时在子模块内切换 commit 即可
+- godot-cpp 源码采用 submodule 纳入本项目，保持上游原样，不改动任何文件与脚本，升级时在 submodule 内切换 commit 即可
 - 每个变体安装在独立目录里，多个配置可以在同一安装前缀下长期共存、互不覆盖
 
 ## 产物布局
@@ -52,7 +52,7 @@ cmake --list-presets=all
 
 ### 非默认变体
 
-preset 只区分平台和 target，精度与线程特性沿用默认值 `single` 和 `ON`。需要其它组合时改用 configure、build、install 三阶段命令形式，在configure 阶段追加 `-D` 设置值，例如：
+preset 只区分平台和 target，精度与线程特性沿用默认值 `single` 和 `ON`。需要其它组合时改用 configure、build、install 三阶段命令形式，在configure 阶段追加 `-D` 设置值，例如 double 浮点精度变体：
 
 ```bash
 cmake --preset windows-x86_64-debug "-DGODOTCPP_PRECISION=double"
