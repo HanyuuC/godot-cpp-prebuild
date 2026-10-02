@@ -23,12 +23,12 @@ install/
     ├── doc_source_generator.py
     └── windows-x86_64/                           平台-架构
         ├── template_debug/                       target
-        │   └── single-threads/                   精度-线程
+        │   └── single-withthreads/               精度-线程
         │       ├── GodotCPPVariant.cmake         记录本变体的配置项与工具链信息
         │       ├── GodotCPPTargets.cmake         导出的 GodotCPP::cpp 目标
         │       └── lib/  include/
         └── template_release/
-            └── single-threads/
+            └── single-withthreads/
 ```
 
 一个变体指这四组配置的一次具体取值：API 版本、平台与架构、target、精度与线程。其中任何一项取新值就会多安装出一个新目录，已有的变体不受影响。
@@ -58,7 +58,7 @@ cmake --build --preset windows-x86_64-debug
 cmake --build --preset windows-x86_64-debug-install
 ```
 
-新变体安装到 `install/4.7/windows-x86_64/template_debug/double-threads/`，与既有的 `single-threads` 并存。
+新变体安装到 `install/4.7/windows-x86_64/template_debug/double-withthreads/`，与既有的 `single-withthreads` 并存。
 
 ## 构建侧配置项
 
@@ -119,9 +119,9 @@ target_link_libraries(my_extension PRIVATE GodotCPP::cpp)
 选择的三项配置在当前预编译包里没有对应目录时，`find_package` 会列出这个安装前缀下已有的变体：
 
 ```
-预编译包中没有 windows-x86_64/template_debug/double-threads 变体。
+预编译包中没有 windows-x86_64/template_debug/double-withthreads 变体。
 已安装的变体：
-    windows-x86_64/template_debug/single-threads
+    windows-x86_64/template_debug/single-withthreads
 补齐方式：在 godot-cpp-prebuild 中用对应的 CMakePreset 构建并安装。
 ```
 

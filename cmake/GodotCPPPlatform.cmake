@@ -101,10 +101,10 @@ function(godotcpp_target_arch OUTVAR)
 endfunction()
 
 # --- godotcpp_variant_key ---
-# 变体目录的最后一段，由精度与线程两个轴组成：<precision>-<threads>
+# 变体目录的最后一段，由精度与线程两个轴组成：<precision>-<withthreads|nothreads>
 function(godotcpp_variant_key OUTVAR)
     if(GODOTCPP_THREADS)
-        set(_threads "threads")
+        set(_threads "withthreads")
     else()
         set(_threads "nothreads")
     endif()
@@ -113,7 +113,7 @@ function(godotcpp_variant_key OUTVAR)
 endfunction()
 
 # --- godotcpp_variant_path ---
-# 变体相对路径：<API>/<platform>-<arch>/<target>/<precision>-<threads>
+# 变体相对路径：<API>/<platform>-<arch>/<target>/<precision>-<withthreads|nothreads>
 # 安装侧作为 install() 的 DESTINATION，也是消费端定位变体的路径。
 function(godotcpp_variant_path OUTVAR)
     godotcpp_target_platform(_platform)

@@ -14,7 +14,7 @@ godot-cpp-prebuild
     <API>/GodotCPPPlatform.cmake              平台归一化，构建侧与消费侧共用同一份实现
     <API>/GodotCPPDoc.cmake                   文档生成支持，定义 target_doc_sources()
     <API>/doc_source_generator.py
-    <API>/<platform>-<arch>/<target>/<precision>-<threads>/
+    <API>/<platform>-<arch>/<target>/<precision>-<withthreads|nothreads>/
         GodotCPPVariant.cmake                 记录本变体的配置项与工具链信息
         GodotCPPTargets.cmake                 导出的 GodotCPP::cpp 目标
         GodotCPPTargets-<config>.cmake

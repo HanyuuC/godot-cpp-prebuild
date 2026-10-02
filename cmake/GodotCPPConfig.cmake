@@ -72,7 +72,7 @@ if(NOT DEFINED GODOTCPP_THREADS OR GODOTCPP_THREADS STREQUAL "")
 endif()
 
 if(GODOTCPP_THREADS)
-    set(_threads "threads")
+    set(_threads "withthreads")
 else()
     set(_threads "nothreads")
 endif()
