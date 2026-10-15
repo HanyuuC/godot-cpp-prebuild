@@ -37,7 +37,7 @@ install/
 
 godot-cpp 作为 git submodule 放在 `godot-cpp/`，执行 `git submodule update --init` 进行 submodule 初始化
 
-需要构建本机平台与架构的产物时，使用 `native-debug` / `native-release`：两个预设都不声明生成器、架构与工具链，配置时由 CMake 取本机默认生成器，平台与架构再从生成器提供的系统名与处理器名归一化得出。
+需要构建本机平台与架构的产物时，使用 `native-debug` / `native-release`。native 与交叉编译相对，指目标平台与架构由本机环境决定；两个预设都不声明生成器、架构与工具链，配置时由 CMake 取本机默认生成器，平台与架构再从生成器提供的系统名与处理器名归一化得出。
 
 Windows x64 上的产物落在 `install/4.7/windows-x86_64/`，Linux arm64 上的产物落在 `install/4.7/linux-arm64/`。
 
