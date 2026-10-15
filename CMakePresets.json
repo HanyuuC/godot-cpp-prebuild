@@ -12,6 +12,26 @@
       }
     },
     {
+      "name": "native-debug",
+      "displayName": "本机 / template_debug",
+      "description": "不声明生成器与架构，由 CMake 取本机默认生成器，此时产物的平台与架构与本机相同",
+      "inherits": "base",
+      "cacheVariables": {
+        "GODOTCPP_TARGET": "template_debug",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "native-release",
+      "displayName": "本机 / template_release",
+      "description": "不声明生成器与架构，由 CMake 取本机默认生成器，此时产物的平台与架构与本机相同",
+      "inherits": "base",
+      "cacheVariables": {
+        "GODOTCPP_TARGET": "template_release",
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
       "name": "windows-x86_64",
       "hidden": true,
       "inherits": "base",
@@ -89,6 +109,28 @@
   ],
   "buildPresets": [
     {
+      "name": "native-debug",
+      "configurePreset": "native-debug",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "native-release",
+      "configurePreset": "native-release",
+      "configuration": "Release"
+    },
+    {
+      "name": "native-debug-install",
+      "configurePreset": "native-debug",
+      "configuration": "RelWithDebInfo",
+      "targets": ["install"]
+    },
+    {
+      "name": "native-release-install",
+      "configurePreset": "native-release",
+      "configuration": "Release",
+      "targets": ["install"]
+    },
+    {
       "name": "windows-x86_64-debug",
       "configurePreset": "windows-x86_64-debug",
       "configuration": "RelWithDebInfo"
@@ -148,6 +190,24 @@
     }
   ],
   "workflowPresets": [
+    {
+      "name": "native-debug",
+      "displayName": "本机 / template_debug：配置、构建并安装",
+      "steps": [
+        { "type": "configure", "name": "native-debug" },
+        { "type": "build", "name": "native-debug" },
+        { "type": "build", "name": "native-debug-install" }
+      ]
+    },
+    {
+      "name": "native-release",
+      "displayName": "本机 / template_release：配置、构建并安装",
+      "steps": [
+        { "type": "configure", "name": "native-release" },
+        { "type": "build", "name": "native-release" },
+        { "type": "build", "name": "native-release-install" }
+      ]
+    },
     {
       "name": "windows-x86_64-debug",
       "displayName": "Windows x86_64 / template_debug：配置、构建并安装",

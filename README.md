@@ -37,7 +37,16 @@ install/
 
 godot-cpp 作为 git submodule 放在 `godot-cpp/`，执行 `git submodule update --init` 进行 submodule 初始化
 
-在 Windows x64 上使用 workflow preset 构建并安装全部常用变体，每个 workflow preset 内部依次完成配置、构建、安装三步：
+需要构建本机平台与架构的产物时，使用 `native-debug` / `native-release`：两个预设都不声明生成器、架构与工具链，配置时由 CMake 取本机默认生成器，平台与架构再从生成器提供的系统名与处理器名归一化得出。
+
+Windows x64 上的产物落在 `install/4.7/windows-x86_64/`，Linux arm64 上的产物落在 `install/4.7/linux-arm64/`。
+
+```bash
+cmake --workflow --preset native-debug
+cmake --workflow --preset native-release
+```
+
+指定平台与架构时用对应平台的 preset，例如在 Windows x64 上构建并安装全部常用变体，每个 workflow preset 内部依次完成配置、构建、安装三步：
 
 ```bash
 cmake --workflow --preset windows-x86_64-debug
@@ -49,6 +58,15 @@ cmake --workflow --preset windows-x86_64-release
 ```bash
 cmake --list-presets=all
 ```
+
+### 构建配置的两种表达
+
+构建配置同时写在两个位置，取值按 target 固定：`template_debug` 用 `RelWithDebInfo`，`template_release` 用 `Release`。
+
+- configure preset 的 `CMAKE_BUILD_TYPE` — 单配置生成器（Make、Ninja）在配置期读取该值
+- build preset 的 `configuration` — 多配置生成器（Visual Studio）在构建期读取该值，单配置生成器下对应的 `--config` 被忽略
+
+单配置生成器读取 `CMAKE_BUILD_TYPE`，多配置生成器读取 `configuration`，另一项对两者都不产生影响，同一个预设因此可以同时覆盖两类生成器；不限定生成器的 `native-*` 预设只需一套取值，无需按生成器分别编写规则。
 
 ### 非默认变体
 
@@ -173,7 +191,10 @@ Python 3.4+ 只在真正调用该函数时才查找，所以没有文档目录�
 - 消费端在两种 target 下各自配置与构建通过，产物名与 `.gdextension` 声明一致，`compatibility_minimum` 为 `4.7`
 - 找不到匹配的变体时会列出已有的变体
 - `target_doc_sources` 完成从 XML 到内嵌 C++ 源的生成与编译
+- `native-debug` 与 `windows-x86_64-debug` 判定出同一个平台与架构，变体路径同为 `4.7/windows-x86_64/template_debug/single-withthreads`
+- 单配置生成器下 `--config` 被忽略已在 Linux 的 Make 生成器上确认
 
 尚待验证：
 
 - Linux arm64 与 Android arm64 的工具链与 preset 属于模板，暂未在编译环境执行过编译
+- `native-*` 只在本机 Windows x64 上配置过，Linux 与 macOS 上尚未执行过编译；

@@ -27,11 +27,15 @@ godot-cpp-prebuild
 
 构建与安装::
 
-    cmake --workflow --preset windows-x86_64-debug     # 配置 + 构建 + 安装
+    cmake --workflow --preset native-debug             # 本机平台与架构
+    cmake --workflow --preset windows-x86_64-debug     # 指定平台与架构
     cmake --workflow --preset windows-x86_64-release
 
-CMakePresets.json 为每个平台按 target 各备一个 preset；精度与线程沿用
-GODOTCPP_PRECISION（single）与 GODOTCPP_THREADS（ON）的默认值，需要非默认组合时在
+CMakePresets.json 为每个平台按 target 各备一个 preset，另有 native-debug 与
+native-release 不声明生成器、架构与工具链，配置时由 CMake 取本机默认生成器，
+因此产出执行编译时本机所在运行平台的编译产物。
+
+精度与线程沿用GODOTCPP_PRECISION（single）与 GODOTCPP_THREADS（ON）的默认值，需要非默认组合时在
 configure 时用 -D 追加，例如::
 
     cmake --preset windows-x86_64-debug "-DGODOTCPP_PRECISION=double"
