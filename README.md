@@ -83,9 +83,9 @@ cmake --build --preset windows-x86_64-debug-install
 ## 预编译配置项
 
 - `GODOTCPP_VENDOR_DIR` — godot-cpp 源码目录，默认 `<本工程>/godot-cpp`
-- `GODOTCPP_API_VERSION` — 目标 Godot API 版本，取值需对应 `godot-cpp/gdextension/extension_api-<版本>.json`；CMake 配置时会检查这个版本在 godot-cpp 里是否存在，拼错会直接报错并列出可用版本
-- `GODOTCPP_TARGET` — 决定编译库面向的运行程序类型，取值：`template_debug`（debug导出包加载）| `template_release`（release导出包加载）| `editor`（编辑器加载，可采用`template_debug`）。其中`template_debug` 采用 `RelWithDebInfo` 构建配置，`template_release` 采用 `Release` 构建配置
-- `GODOTCPP_PRECISION` — 决定 `real_t` 的定义为单精度/双精度浮点数，与消费端 ABI 相关，取值 `single` | `double`，
+- `GODOTCPP_API_VERSION` — 目标 Godot API 版本，无默认值，必须显式指定；取值需对应 `godot-cpp/gdextension/extension_api-<版本>.json`；CMake 配置时会检查这个版本在 godot-cpp 里是否存在，拼错会直接报错并列出可用版本
+- `GODOTCPP_TARGET` — 决定编译库面向的运行程序类型，默认 `template_debug`，取值：`template_debug`（debug导出包加载）| `template_release`（release导出包加载）| `editor`（编辑器加载，可采用`template_debug`）。其中`template_debug` 采用 `RelWithDebInfo` 构建配置，`template_release` 采用 `Release` 构建配置
+- `GODOTCPP_PRECISION` — 决定 `real_t` 的定义为单精度/双精度浮点数，与消费端 ABI 相关，默认 `single`，取值 `single` | `double`
 - `GODOTCPP_THREADS` — godot-cpp 的 `threads` 特性开关，默认 `ON`；置 `OFF` 的产物文件名带 `.nothreads` 段
 - `GODOTCPP_DEV_BUILD` — godot-cpp 自带的开发构建开关，该选项面向 godot-cpp 开发者，默认 `OFF`。设为 `ON` 时会定义 `DEV_ENABLED`、关掉内联与优化（`-O0 -fno-omit-frame-pointer`）、把调试信息提到 `-g3`，并启用只在开发期生效的内部检查。本工程暂不支持设为 `ON`：它会让库文件名多出 `.dev` 段，而目录名中不包含 `.dev`，dev 与非 dev 的产物就会安装进同一个目录互相覆盖；如需支持，需要先将 dev 纳入目录命名。这些编译选项在 godot-cpp 中声明为 PUBLIC，会传递给链接它的工程，因此开启该选项后消费端的优化等级也会随之降低
 
