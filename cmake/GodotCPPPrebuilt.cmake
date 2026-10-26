@@ -89,6 +89,19 @@ function(godotcpp_prebuilt_install)
         DESTINATION "${_variant_rel}"
     )
 
+    # ---- 调试符号 ----
+    # 静态库的 PDB 由编译器生成，不经过链接器，$<TARGET_PDB_FILE> 对静态库不可用。
+    # 该 PDB 与库文件同目录、同前缀同基名，按此拼出路径后与库一并安装，
+    # 消费端链接时在库所在目录即可找到它，不再报 LNK4099。
+    # Release 不生成 PDB，因此只在 Debug 与 RelWithDebInfo 下安装。
+    if(MSVC)
+        install(FILES
+            "$<TARGET_FILE_DIR:godot-cpp>/$<TARGET_FILE_PREFIX:godot-cpp>$<TARGET_FILE_BASE_NAME:godot-cpp>.pdb"
+            CONFIGURATIONS Debug RelWithDebInfo
+            DESTINATION "${_variant_rel}/lib"
+        )
+    endif()
+
     # ---- 头文件 ----
     # 静态头，随上游发布，与精度无关。整目录搬运而不按扩展名过滤：
     # 上游除 .hpp 外还有 math.compat.inc 这类被 include 的片段。
