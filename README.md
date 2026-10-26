@@ -116,19 +116,6 @@ cmake --build --preset windows-x86_64-debug-install
 cmake -B build "-DGODOTCPP_TARGET=template_release"
 ```
 
-### CMakeLists.txt 示例
-
-```cmake
-set(GODOTCPP_TARGET "template_debug" CACHE STRING "构建目标")
-set(GODOTCPP_PRECISION "single" CACHE STRING "浮点精度")
-set(GODOTCPP_THREADS ON CACHE BOOL "多线程支持")
-
-set(GodotCPP_DIR "<godot-cpp-prebuild>/install/4.7" CACHE PATH "预编译包目录")
-find_package(GodotCPP CONFIG REQUIRED)
-
-target_link_libraries(my_extension PRIVATE GodotCPP::cpp)
-```
-
 ### 包提供的目标与变量
 
 - `GodotCPP::cpp` — 预编译库的导入目标，包含静态库、头文件搜索路径，以及全部 ABI 相关编译宏与链接选项
@@ -141,6 +128,50 @@ target_link_libraries(my_extension PRIVATE GodotCPP::cpp)
 上述取值同时记录在 `GodotCPP::cpp` 的目标属性上，属性名为 `GODOTCPP_PLATFORM`、`GODOTCPP_TARGET`、`GODOTCPP_ARCH`、`GODOTCPP_PRECISION`、`GODOTCPP_SUFFIX`。
 
 命名约定：`GODOTCPP_*`（全大写）由使用者在 CMakeLists.txt 中设置，用来指定使用哪一份预编译库；`GodotCPP_*` 在 `find_package` 完成后由包设置，供使用者读取。
+
+### CMakeLists.txt 示例
+
+```cmake
+cmake_minimum_required(VERSION 3.25)
+project(my_extension LANGUAGES CXX)
+
+# godot-cpp 头文件要求 C++17，消费端需以 C++17 或更高标准编译
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# 选择变体：三项对应预编译包中的变体目录，未设置时取默认值 template_debug、single、ON
+set(GODOTCPP_TARGET "template_debug" CACHE STRING "构建目标")
+set(GODOTCPP_PRECISION "single" CACHE STRING "浮点精度")
+set(GODOTCPP_THREADS ON CACHE BOOL "多线程支持")
+
+# 设置预编译包目录为 <godot-cpp-prebuild> 工程目录下的 4.7 版本，需替换为实际路径
+set(GodotCPP_DIR "<godot-cpp-prebuild>/install/4.7" CACHE PATH "预编译包目录")
+find_package(GodotCPP CONFIG REQUIRED)
+
+set(GDEXTENSION_NAME "${PROJECT_NAME}") # 消费端扩展库名
+
+add_library(${GDEXTENSION_NAME} SHARED)
+target_sources(${GDEXTENSION_NAME} PRIVATE <my_source_code.cpp>)# <my_source_code.cpp>需替换为实际源文件路径
+
+target_link_libraries(${GDEXTENSION_NAME} PRIVATE GodotCPP::cpp)
+
+# 配置编译的二进制库输出目录及文件名
+set(GDE_OUT_DIR "${PROJECT_SOURCE_DIR}/bin/${GDEXTENSION_NAME}") # 设置扩展输出目录为 bin/${GDEXTENSION_NAME}
+set(GDE_BIN_DIR "${GDE_OUT_DIR}/${GodotCPP_PLATFORM}")           # 设置二进制文件所在目录以平台进行分类
+set_target_properties(${GDEXTENSION_NAME}
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY # windows下dll归runtime产物
+        $<1:${GDE_BIN_DIR}>
+    LIBRARY_OUTPUT_DIRECTORY # linux/macos下so、dylib归library产物
+        $<1:${GDE_BIN_DIR}>  
+    ARCHIVE_OUTPUT_DIRECTORY # windows下dll的导入库lib归archive产物 
+        $<1:${GDE_BIN_DIR}> 
+    PREFIX                   # 设置文件名前缀为空，用于在unix平台去除文件lib前缀
+        "" 
+    OUTPUT_NAME              # 为生成的产物文件名添加后缀，如 my_extension.windows.template_debug.x86_64
+        "${GDEXTENSION_NAME}${GodotCPP_SUFFIX}" 
+)
+```
 
 ### 找不到匹配的变体
 
