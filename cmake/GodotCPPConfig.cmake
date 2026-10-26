@@ -90,7 +90,9 @@ if(NOT EXISTS "${GodotCPP_VARIANT_DIR}/GodotCPPVariant.cmake"
     endif()
 
     set(GodotCPP_FOUND FALSE)
-    set(GodotCPP_NOT_FOUND_MESSAGE
+    # find_package 原样打印 NOT_FOUND_MESSAGE，这里必须用 string(CONCAT) 拼成单个字符串；
+    # 写成 set(A "x" "y") 会得到列表，打印时各段之间被替换为分号。
+    string(CONCAT GodotCPP_NOT_FOUND_MESSAGE
         "预编译包中没有 ${_platform}-${_arch}/${GODOTCPP_TARGET}/${GODOTCPP_PRECISION}-${_threads} 变体。\n"
         "已安装的变体：\n    ${_available}\n"
         "补齐方式：在 godot-cpp-prebuild 中用对应的 CMakePreset 构建并安装。")
