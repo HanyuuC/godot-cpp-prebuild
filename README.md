@@ -157,15 +157,15 @@ target_link_libraries(${GDEXTENSION_NAME} PRIVATE GodotCPP::cpp)
 
 # 配置编译的二进制库输出目录及文件名
 set(GDE_OUT_DIR "${PROJECT_SOURCE_DIR}/bin/${GDEXTENSION_NAME}") # 设置扩展输出目录为 bin/${GDEXTENSION_NAME}
-set(GDE_BIN_DIR "${GDE_OUT_DIR}/${GodotCPP_PLATFORM}")           # 设置二进制文件所在目录以平台进行分类
+set(GDE_PLATFORM_BIN_DIR "${GDE_OUT_DIR}/${GodotCPP_PLATFORM}")  # 设置二进制文件所在目录以平台进行分类
 set_target_properties(${GDEXTENSION_NAME}
     PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY # windows下dll归runtime产物
-        $<1:${GDE_BIN_DIR}>
+        $<1:${GDE_PLATFORM_BIN_DIR}>
     LIBRARY_OUTPUT_DIRECTORY # linux/macos下so、dylib归library产物
-        $<1:${GDE_BIN_DIR}>  
+        $<1:${GDE_PLATFORM_BIN_DIR}>  
     ARCHIVE_OUTPUT_DIRECTORY # windows下dll的导入库lib归archive产物 
-        $<1:${GDE_BIN_DIR}> 
+        $<1:${GDE_PLATFORM_BIN_DIR}> 
     PREFIX                   # 设置文件名前缀为空，用于在unix平台去除文件lib前缀
         "" 
     OUTPUT_NAME              # 为生成的产物文件名添加后缀，如 my_extension.windows.template_debug.x86_64
