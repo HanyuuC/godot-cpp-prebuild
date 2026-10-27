@@ -16,7 +16,7 @@ GodotCPPExtension.cmake
         [NAME <name>]
         [OUTPUT_DIR <dir>]
         [ENTRY_SYMBOL <symbol>]
-        [RELOADABLE]
+        [RELOADABLE <布尔值>]
         [COMPATIBILITY_MINIMUM <version>]
         [GODOT_PROJECT_DIR <dir>]
         [VARIANTS <platform|arch|extension>...]
@@ -30,7 +30,8 @@ GodotCPPExtension.cmake
 ``ENTRY_SYMBOL``
     ``.gdextension`` 的 ``entry_symbol``，默认 ``library_init``。
 ``RELOADABLE``
-    是否允许编辑器热重载，默认关闭。
+    ``.gdextension`` 的 ``reloadable`` 选项，按 CMake 布尔语义解析
+    （``ON``/``OFF``、``TRUE``/``FALSE``、``YES``/``NO``、``1``/``0``），默认 ``OFF``。
 ``COMPATIBILITY_MINIMUM``
     ``compatibility_minimum``，默认取 ``GodotCPP_API_VERSION``。
 ``GODOT_PROJECT_DIR``
@@ -190,13 +191,14 @@ endfunction()
 #   godotcpp_extension(my_extension)
 function(godotcpp_extension TARGET)
     # cmake_parse_arguments 把 TARGET 之后的参数分成三类：
-    #   第 3 个参数：开关型参数（只写名字，不带值）
-    #   第 4 个参数：单值参数（名字后面跟一个值）
-    #   第 5 个参数：多值参数（名字后面可以跟多个值）
+    #   开关型：本函数没有
+    #   单值型：NAME、OUTPUT_DIR、ENTRY_SYMBOL、RELOADABLE、
+    #           COMPATIBILITY_MINIMUM、GODOT_PROJECT_DIR
+    #   多值型：VARIANTS
     # PARSE_ARGV 1 表示从第 1 个参数开始解析，第 0 个是 TARGET。
     cmake_parse_arguments(PARSE_ARGV 1 _ext
-        "RELOADABLE"
-        "NAME;OUTPUT_DIR;ENTRY_SYMBOL;COMPATIBILITY_MINIMUM;GODOT_PROJECT_DIR"
+        ""
+        "NAME;OUTPUT_DIR;ENTRY_SYMBOL;RELOADABLE;COMPATIBILITY_MINIMUM;GODOT_PROJECT_DIR"
         "VARIANTS"
     )
 
@@ -208,6 +210,11 @@ function(godotcpp_extension TARGET)
     if(_ext_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR
             "godotcpp_extension: 无法识别的参数：${_ext_UNPARSED_ARGUMENTS}")
+    endif()
+    # RELOADABLE 是单值参数，必须跟 ON 或 OFF。
+    if("RELOADABLE" IN_LIST _ext_KEYWORDS_MISSING_VALUES)
+        message(FATAL_ERROR
+            "godotcpp_extension: RELOADABLE 需要取值，例如 RELOADABLE ON。")
     endif()
 
     # 这些变量由 find_package(GodotCPP) 加载的变体文件提供。
@@ -282,7 +289,8 @@ function(godotcpp_extension TARGET)
         set(_compatibility_minimum "${GodotCPP_API_VERSION}")
     endif()
 
-    # .gdextension 里需要的是文本 true/false，而不是 CMake 的 ON/OFF。
+    # .gdextension 里需要的是 true/false 文本。
+    # CMake 的 if() 已按标准布尔常量判断：ON/OFF、TRUE/FALSE、YES/NO、1/0。
     if(_ext_RELOADABLE)
         set(_reloadable "true")
     else()

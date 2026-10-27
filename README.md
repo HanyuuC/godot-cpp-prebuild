@@ -159,28 +159,39 @@ target_sources(${GDEXTENSION_NAME} PRIVATE <my_source_code.cpp>)# <my_source_cod
 
 target_link_libraries(${GDEXTENSION_NAME} PRIVATE GodotCPP::cpp)
 
-# 产物命名与 .gdextension 声明由预编译包统一处理，保证两者使用同一套后缀规则
+# 预编译库提供godotcpp_extension()函数
+# 该函数按当前变体自动设置产物输出目录与文件名，并生成 .gdextension
 godotcpp_extension(${GDEXTENSION_NAME})
 ```
 
-`godotcpp_extension()` 支持以下参数，全部可省略：
+`godotcpp_extension()` 函数参数说明：
 
-- `NAME <扩展名>` — 默认取 target 名
-- `OUTPUT_DIR <目录>` — 输出根目录，默认 `${PROJECT_SOURCE_DIR}/bin/<扩展名>`，相对路径相对于 `CMAKE_CURRENT_SOURCE_DIR`
-- `ENTRY_SYMBOL <符号>` — `.gdextension` 的 `entry_symbol`，默认 `library_init`
-- `RELOADABLE` — 允许编辑器热重载，默认关闭
-- `COMPATIBILITY_MINIMUM <版本>` — 默认取包报告的 `GodotCPP_API_VERSION`
-- `GODOT_PROJECT_DIR <目录>` — 给出时在构建后把产物复制到 `<目录>/bin/<扩展名>`；相对路径相对于 `CMAKE_CURRENT_SOURCE_DIR`
-- `VARIANTS <platform|arch|extension>...` — 覆盖默认库路径表（默认覆盖
-  windows / linux / android）；需要 macOS、iOS、web 等平台时传入完整表
+```cmake
+godotcpp_extension(<target>
+    [NAME <扩展名>]
+    [OUTPUT_DIR <目录>]
+    [ENTRY_SYMBOL <库初始化入口函数名>]
+    [RELOADABLE <布尔值>]
+    [COMPATIBILITY_MINIMUM <版本>]
+    [GODOT_PROJECT_DIR <目录>]
+    [VARIANTS <platform|arch|extension>...]
+)
+```
 
-调用后可在父作用域读取 `<target>_GDEXTENSION_FILE` 与
-`<target>_GDEXTENSION_OUT_DIR`。产物文件名与 `.gdextension` 路径都由
-`GodotCPP_SUFFIX` 对应的同一份后缀规则生成，因此不会出现“库叫一个名字、声明里写另一个名字”的情况。
+- `NAME`：扩展名，默认取 target 名；决定生成的库文件名与 `.gdextension` 文件名
+- `OUTPUT_DIR`：输出根目录，默认 `${PROJECT_SOURCE_DIR}/bin/<扩展名>`；决定产物与 `.gdextension` 的生成位置，二进制放入 `<OUTPUT_DIR>/<GodotCPP_PLATFORM>` 目录，相对路径相对于 `CMAKE_CURRENT_SOURCE_DIR` 解析
+- `ENTRY_SYMBOL`：`.gdextension` 的 `entry_symbol`，决定扩展初始化入口函数符号名，默认 `library_init`
+- `RELOADABLE`：控制 `.gdextension` 的 `reloadable`，按 CMake 布尔语义解析（`ON`/`OFF`、`TRUE`/`FALSE`、`YES`/`NO`、`1`/`0`），默认 `OFF`
+- `COMPATIBILITY_MINIMUM`：`.gdextension` 的 `compatibility_minimum`，决定可加载该扩展的最低 Godot 版本，默认 `GodotCPP_API_VERSION`
+- `GODOT_PROJECT_DIR`：给出时，构建后将产物复制到 `<目录>/bin/<扩展名>`，未给出时不复制；用于把编译产物直接复制到加载该扩展的 Godot 工程，省去手动拷贝，相对路径相对于 `CMAKE_CURRENT_SOURCE_DIR` 解析
+- `VARIANTS`：覆盖默认库路径表，元素形如 `platform|arch|extension`；决定 `.gdextension` 中 `[libraries]` 配置表中声明的平台、架构与扩展名组合，默认覆盖 windows、linux、android
 
-> [!NOTE] 输出目录与生成器表达式
->
-> `RUNTIME_OUTPUT_DIRECTORY` 等属性内部包了一层 `$<1:目录>`。多配置生成器（Visual Studio、Xcode、Ninja Multi-Config）只在该属性含生成器表达式时才不会自动追加 `/<CONFIG>` 子目录；直接写普通路径会让二进制落到 `windows/RelWithDebInfo/` 之类的位置，与 `.gdextension` 中的相对路径失配。这一点已封装在函数里，消费端不需要自己处理。
+函数还会在父作用域设置两个结果变量，供后续构建步骤读取：
+
+- `<target>_GDEXTENSION_FILE`：生成的 `.gdextension` 路径
+- `<target>_GDEXTENSION_OUT_DIR`：输出根目录
+
+这两个变量带 target 前缀，多 target 工程不会互相覆盖。配置阶段会用 `STATUS` 消息打印 `.gdextension` 路径、输出根目录与二进制目录，便于确认生成位置。
 
 ### 找不到匹配的变体
 
@@ -231,7 +242,7 @@ Python 3.4+ 只在真正调用该函数时才查找，所以没有文档目录�
 - 消费端在两种 target 下各自配置与构建通过，产物名与 `.gdextension` 声明一致，`compatibility_minimum` 为 `4.7`
 - 找不到匹配的变体时会列出已有的变体
 - `target_doc_sources` 完成从 XML 到内嵌 C++ 源的生成与编译
-- `godotcpp_extension` 替换 hello 工程原有的手写输出配置，生成的 `.gdextension` 与二进制产物路径一致；自定义 `NAME` / `ENTRY_SYMBOL` / `RELOADABLE` / `VARIANTS` 的参数组合在临时消费工程中配置与构建通过
+- `godotcpp_extension` 替换 hello 工程原有的手写输出配置，生成的 `.gdextension` 与二进制产物路径一致；自定义 `NAME` / `ENTRY_SYMBOL` / `RELOADABLE ON` / `VARIANTS` 的参数组合在临时消费工程中配置与构建通过
 - 双精度路径按 godot-cpp 的 `.double` 段顺序生成（如 `.windows.template_debug.double.x86_64`），不再使用容易与实际产物失配的 `.x86_64.double` 写法
 - `native-debug` 与 `windows-x86_64-debug` 判定出同一个平台与架构，变体路径同为 `4.7/windows-x86_64/template_debug/single-withthreads`
 - 单配置生成器下 `--config` 被忽略已在 Linux 的 Make 生成器上确认
@@ -240,3 +251,4 @@ Python 3.4+ 只在真正调用该函数时才查找，所以没有文档目录�
 
 - Linux arm64 与 Android arm64 的工具链与 preset 属于模板，暂未在编译环境执行过编译
 - `native-*` 只在本机 Windows x64 上配置过，Linux 与 macOS 上尚未执行过编译；
+
