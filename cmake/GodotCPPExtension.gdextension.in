@@ -1,0 +1,8 @@
+[configuration]
+
+entry_symbol = "@GODOTCPP_EXTENSION_ENTRY_SYMBOL@"
+compatibility_minimum = "@GODOTCPP_EXTENSION_COMPATIBILITY_MINIMUM@"
+reloadable = @GODOTCPP_EXTENSION_RELOADABLE@
+
+[libraries]
+@GODOTCPP_EXTENSION_LIBRARIES@

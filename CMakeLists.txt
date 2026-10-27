@@ -13,6 +13,8 @@ godot-cpp-prebuild
     <API>/GodotCPPConfigVersion.cmake
     <API>/GodotCPPPlatform.cmake              平台归一化，构建侧与消费侧共用同一份实现
     <API>/GodotCPPDoc.cmake                   文档生成支持，定义 target_doc_sources()
+    <API>/GodotCPPExtension.cmake             扩展打包支持，定义 godotcpp_extension()
+    <API>/GodotCPPExtension.gdextension.in    .gdextension 生成模板
     <API>/doc_source_generator.py
     <API>/<platform>-<arch>/<target>/<precision>-<withthreads|nothreads>/
         GodotCPPVariant.cmake                 记录本变体的配置项与工具链信息

@@ -44,8 +44,9 @@ godot-cpp 预编译包的配置文件，由 ``find_package(GodotCPP CONFIG)`` �
 同时兼容按目标属性读取：``GODOTCPP_PLATFORM`` / ``GODOTCPP_TARGET`` /
 ``GODOTCPP_ARCH`` / ``GODOTCPP_PRECISION`` / ``GODOTCPP_SUFFIX``。
 
-本文件同时加载 ``GodotCPPDoc.cmake``，因此在消费端可直接调用
-``target_doc_sources(<target> <xml 列表>)`` 生成编辑器内嵌文档。
+本文件同时加载 ``GodotCPPDoc.cmake`` 与 ``GodotCPPExtension.cmake``，因此在消费端可直接调用
+``target_doc_sources(<target> <xml 列表>)`` 生成编辑器内嵌文档，以及
+``godotcpp_extension(<target>)`` 统一配置扩展产物与 ``.gdextension``。
 
 ]=======================================================================]
 
@@ -56,6 +57,7 @@ endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/GodotCPPPlatform.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/GodotCPPDoc.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/GodotCPPExtension.cmake")
 
 # ---- 1. 解析变体配置 ----
 godotcpp_target_platform(_platform)

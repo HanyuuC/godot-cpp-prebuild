@@ -124,6 +124,8 @@ function(godotcpp_prebuilt_install)
         "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/GodotCPPConfigVersion.cmake"
         "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/GodotCPPPlatform.cmake"
         "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/GodotCPPDoc.cmake"
+        "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/GodotCPPExtension.cmake"
+        "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/GodotCPPExtension.gdextension.in"
         "${_vendor}/doc_source_generator.py"
         DESTINATION "${_api}"
     )

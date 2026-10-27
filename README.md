@@ -20,6 +20,8 @@ install/
     ├── GodotCPPConfigVersion.cmake
     ├── GodotCPPPlatform.cmake                    平台归一化，构建侧与消费侧共用
     ├── GodotCPPDoc.cmake                         提供 target_doc_sources()
+    ├── GodotCPPExtension.cmake                   提供 godotcpp_extension()
+    ├── GodotCPPExtension.gdextension.in          .gdextension 生成模板
     ├── doc_source_generator.py
     └── windows-x86_64/                           平台-架构
         ├── template_debug/                       target
@@ -125,6 +127,8 @@ cmake -B build "-DGODOTCPP_TARGET=template_release"
 - `GodotCPP_SUFFIX` — 库文件名后缀，如 `.windows.template_debug.x86_64`，用它拼接扩展库文件名即可与 `.gdextension` 中的路径声明一致
 - `GodotCPP_VARIANT_DIR` — 本次选用变体所在目录
 
+包还提供消费端函数 `godotcpp_extension(...)`，用于统一设置产物命名并生成 `.gdextension`，参数见下一节。
+
 上述取值同时记录在 `GodotCPP::cpp` 的目标属性上，属性名为 `GODOTCPP_PLATFORM`、`GODOTCPP_TARGET`、`GODOTCPP_ARCH`、`GODOTCPP_PRECISION`、`GODOTCPP_SUFFIX`。
 
 命名约定：`GODOTCPP_*`（全大写）由使用者在 CMakeLists.txt 中设置，用来指定使用哪一份预编译库；`GodotCPP_*` 在 `find_package` 完成后由包设置，供使用者读取。
@@ -155,23 +159,30 @@ target_sources(${GDEXTENSION_NAME} PRIVATE <my_source_code.cpp>)# <my_source_cod
 
 target_link_libraries(${GDEXTENSION_NAME} PRIVATE GodotCPP::cpp)
 
-# 配置编译的二进制库输出目录及文件名
-set(GDE_OUT_DIR "${PROJECT_SOURCE_DIR}/bin/${GDEXTENSION_NAME}") # 设置扩展输出目录为 bin/${GDEXTENSION_NAME}
-set(GDE_PLATFORM_BIN_DIR "${GDE_OUT_DIR}/${GodotCPP_PLATFORM}")  # 设置二进制文件所在目录以平台进行分类
-set_target_properties(${GDEXTENSION_NAME}
-    PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY # windows下dll归runtime产物
-        $<1:${GDE_PLATFORM_BIN_DIR}>
-    LIBRARY_OUTPUT_DIRECTORY # linux/macos下so、dylib归library产物
-        $<1:${GDE_PLATFORM_BIN_DIR}>  
-    ARCHIVE_OUTPUT_DIRECTORY # windows下dll的导入库lib归archive产物 
-        $<1:${GDE_PLATFORM_BIN_DIR}> 
-    PREFIX                   # 设置文件名前缀为空，用于在unix平台去除文件lib前缀
-        "" 
-    OUTPUT_NAME              # 为生成的产物文件名添加后缀，如 my_extension.windows.template_debug.x86_64
-        "${GDEXTENSION_NAME}${GodotCPP_SUFFIX}" 
-)
+# 产物命名与 .gdextension 声明由预编译包统一处理，保证两者使用同一套后缀规则
+godotcpp_extension(${GDEXTENSION_NAME})
 ```
+
+`godotcpp_extension()` 支持以下参数，全部可省略：
+
+- `NAME <扩展名>` — 默认取 target 名
+- `OUTPUT_DIR <目录>` — 输出根目录，默认 `${PROJECT_SOURCE_DIR}/bin/<扩展名>`
+- `ENTRY_SYMBOL <符号>` — `.gdextension` 的 `entry_symbol`，默认 `library_init`
+- `RELOADABLE` — 允许编辑器热重载，默认关闭
+- `COMPATIBILITY_MINIMUM <版本>` — 默认取包报告的 `GodotCPP_API_VERSION`
+- `GODOT_PROJECT_DIR <目录>` — 给出时在构建后把产物复制到 `<目录>/bin/<扩展名>`；
+  相对路径按调用 `godotcpp_extension()` 的 CMakeLists.txt 所在目录
+  （`CMAKE_CURRENT_SOURCE_DIR`）解析，绝对路径原样使用
+- `VARIANTS <platform|arch|extension>...` — 覆盖默认库路径表（默认覆盖
+  windows / linux / android）；需要 macOS、iOS、web 等平台时传入完整表
+
+调用后可在父作用域读取 `<target>_GDEXTENSION_FILE` 与
+`<target>_GDEXTENSION_OUT_DIR`。产物文件名与 `.gdextension` 路径都由
+`GodotCPP_SUFFIX` 对应的同一份后缀规则生成，因此不会出现“库叫一个名字、声明里写另一个名字”的情况。
+
+> [!NOTE] 输出目录与生成器表达式
+>
+> `RUNTIME_OUTPUT_DIRECTORY` 等属性内部包了一层 `$<1:目录>`。多配置生成器（Visual Studio、Xcode、Ninja Multi-Config）只在该属性含生成器表达式时才不会自动追加 `/<CONFIG>` 子目录；直接写普通路径会让二进制落到 `windows/RelWithDebInfo/` 之类的位置，与 `.gdextension` 中的相对路径失配。这一点已封装在函数里，消费端不需要自己处理。
 
 ### 找不到匹配的变体
 
@@ -222,6 +233,8 @@ Python 3.4+ 只在真正调用该函数时才查找，所以没有文档目录�
 - 消费端在两种 target 下各自配置与构建通过，产物名与 `.gdextension` 声明一致，`compatibility_minimum` 为 `4.7`
 - 找不到匹配的变体时会列出已有的变体
 - `target_doc_sources` 完成从 XML 到内嵌 C++ 源的生成与编译
+- `godotcpp_extension` 替换 hello 工程原有的手写输出配置，生成的 `.gdextension` 与二进制产物路径一致；自定义 `NAME` / `ENTRY_SYMBOL` / `RELOADABLE` / `VARIANTS` 的参数组合在临时消费工程中配置与构建通过
+- 双精度路径按 godot-cpp 的 `.double` 段顺序生成（如 `.windows.template_debug.double.x86_64`），不再使用容易与实际产物失配的 `.x86_64.double` 写法
 - `native-debug` 与 `windows-x86_64-debug` 判定出同一个平台与架构，变体路径同为 `4.7/windows-x86_64/template_debug/single-withthreads`
 - 单配置生成器下 `--config` 被忽略已在 Linux 的 Make 生成器上确认
 
