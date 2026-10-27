@@ -322,8 +322,17 @@ function(godotcpp_extension TARGET)
         )
     endif()
 
-    # 把生成结果暴露给调用者。变量名带 target 前缀，多 target 工程不会互相覆盖。
-    set(${TARGET}_GDEXTENSION_FILE
-        "${_out_dir}/${_name}.gdextension" PARENT_SCOPE)
-    set(${TARGET}_GDEXTENSION_OUT_DIR "${_out_dir}" PARENT_SCOPE)
+    # 先在当前作用域定义结果变量，便于下面的日志直接复用；再写入父作用域，
+    # 供调用者读取。变量名带 target 前缀，多 target 工程不会互相覆盖。
+    set(${TARGET}_GDEXTENSION_FILE "${_out_dir}/${_name}.gdextension")
+    set(${TARGET}_GDEXTENSION_OUT_DIR "${_out_dir}")
+
+    # 在配置输出中报告产物位置，便于确认路径与排查拷贝问题。
+    message(STATUS "godotcpp_extension(${TARGET}):")
+    message(STATUS "  GDExtension file: ${${TARGET}_GDEXTENSION_FILE}")
+    message(STATUS "  Output directory: ${${TARGET}_GDEXTENSION_OUT_DIR}")
+    message(STATUS "  Binary directory: ${${TARGET}_GDEXTENSION_OUT_DIR}/${GodotCPP_PLATFORM}")
+
+    set(${TARGET}_GDEXTENSION_FILE "${${TARGET}_GDEXTENSION_FILE}" PARENT_SCOPE)
+    set(${TARGET}_GDEXTENSION_OUT_DIR "${${TARGET}_GDEXTENSION_OUT_DIR}" PARENT_SCOPE)
 endfunction()
