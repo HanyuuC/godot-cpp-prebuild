@@ -166,13 +166,11 @@ godotcpp_extension(${GDEXTENSION_NAME})
 `godotcpp_extension()` 支持以下参数，全部可省略：
 
 - `NAME <扩展名>` — 默认取 target 名
-- `OUTPUT_DIR <目录>` — 输出根目录，默认 `${PROJECT_SOURCE_DIR}/bin/<扩展名>`
+- `OUTPUT_DIR <目录>` — 输出根目录，默认 `${PROJECT_SOURCE_DIR}/bin/<扩展名>`，相对路径相对于 `CMAKE_CURRENT_SOURCE_DIR`
 - `ENTRY_SYMBOL <符号>` — `.gdextension` 的 `entry_symbol`，默认 `library_init`
 - `RELOADABLE` — 允许编辑器热重载，默认关闭
 - `COMPATIBILITY_MINIMUM <版本>` — 默认取包报告的 `GodotCPP_API_VERSION`
-- `GODOT_PROJECT_DIR <目录>` — 给出时在构建后把产物复制到 `<目录>/bin/<扩展名>`；
-  相对路径按调用 `godotcpp_extension()` 的 CMakeLists.txt 所在目录
-  （`CMAKE_CURRENT_SOURCE_DIR`）解析，绝对路径原样使用
+- `GODOT_PROJECT_DIR <目录>` — 给出时在构建后把产物复制到 `<目录>/bin/<扩展名>`；相对路径相对于 `CMAKE_CURRENT_SOURCE_DIR`
 - `VARIANTS <platform|arch|extension>...` — 覆盖默认库路径表（默认覆盖
   windows / linux / android）；需要 macOS、iOS、web 等平台时传入完整表
 
