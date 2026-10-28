@@ -142,6 +142,7 @@ project(my_extension LANGUAGES CXX)
 # godot-cpp 头文件要求 C++17，消费端需以 C++17 或更高标准编译
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON) # 编译动态库，开启位置无关代码
 
 # 选择变体：三项对应预编译包中的变体目录，未设置时取默认值 template_debug、single、ON
 set(GODOTCPP_TARGET "template_debug" CACHE STRING "构建目标")
