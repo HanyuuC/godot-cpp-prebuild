@@ -19,6 +19,7 @@ GodotCPPExtension.cmake
         [RELOADABLE <布尔值>]
         [COMPATIBILITY_MINIMUM <version>]
         [GODOT_PROJECT_DIR <dir>]
+        [DOC_CLASSES <dir>]
         [VARIANTS <platform|arch|extension>...]
     )
 
@@ -37,6 +38,10 @@ GodotCPPExtension.cmake
 ``GODOT_PROJECT_DIR``
     给出时，构建完成后把 ``OUTPUT_DIR`` 复制到 ``<dir>/bin/<name>``。
     相对路径按调用处的``CMAKE_CURRENT_SOURCE_DIR``解析。
+``DOC_CLASSES``
+    可选。给出时递归收集目录下的 ``*.xml``，仅当 ``GodotCPP_TARGET`` 为
+    ``editor`` 或 ``template_debug`` 时调用 ``target_doc_sources()``，把文档编译进扩展库。
+    相对路径按调用处的当前源码目录解析。
 ``VARIANTS``
     覆盖默认的库路径表，元素形如 ``platform|arch|extension``。默认覆盖
     windows / linux / android；需要 macOS、iOS、web 等平台时，传入完整表
@@ -193,12 +198,12 @@ function(godotcpp_extension TARGET)
     # cmake_parse_arguments 把 TARGET 之后的参数分成三类：
     #   开关型：本函数没有
     #   单值型：NAME、OUTPUT_DIR、ENTRY_SYMBOL、RELOADABLE、
-    #           COMPATIBILITY_MINIMUM、GODOT_PROJECT_DIR
+    #           COMPATIBILITY_MINIMUM、GODOT_PROJECT_DIR、DOC_CLASSES
     #   多值型：VARIANTS
     # PARSE_ARGV 1 表示从第 1 个参数开始解析，第 0 个是 TARGET。
     cmake_parse_arguments(PARSE_ARGV 1 _ext
         ""
-        "NAME;OUTPUT_DIR;ENTRY_SYMBOL;RELOADABLE;COMPATIBILITY_MINIMUM;GODOT_PROJECT_DIR"
+        "NAME;OUTPUT_DIR;ENTRY_SYMBOL;RELOADABLE;COMPATIBILITY_MINIMUM;GODOT_PROJECT_DIR;DOC_CLASSES"
         "VARIANTS"
     )
 
@@ -211,17 +216,22 @@ function(godotcpp_extension TARGET)
         message(FATAL_ERROR
             "godotcpp_extension: 无法识别的参数：${_ext_UNPARSED_ARGUMENTS}")
     endif()
-    # RELOADABLE 是单值参数，必须跟 ON 或 OFF。
-    if("RELOADABLE" IN_LIST _ext_KEYWORDS_MISSING_VALUES)
-        message(FATAL_ERROR
-            "godotcpp_extension: RELOADABLE 需要取值，例如 RELOADABLE ON。")
-    endif()
+    # 单值参数都必须带值；例如 RELOADABLE 需要 ON/OFF，DOC_CLASSES 需要目录。
+    foreach(_keyword IN ITEMS
+            NAME OUTPUT_DIR ENTRY_SYMBOL RELOADABLE
+            COMPATIBILITY_MINIMUM GODOT_PROJECT_DIR DOC_CLASSES)
+        if(_keyword IN_LIST _ext_KEYWORDS_MISSING_VALUES)
+            message(FATAL_ERROR
+                "godotcpp_extension: ${_keyword} missing value")
+        endif()
+    endforeach()
 
     # 这些变量由 find_package(GodotCPP) 加载的变体文件提供。
     # ${${_fact}} 是双重展开：先得到变量名，再取该变量的值。
     foreach(_fact
             GodotCPP_API_VERSION
             GodotCPP_PLATFORM
+            GodotCPP_TARGET
             GodotCPP_SUFFIX
             GodotCPP_THREADS
             GodotCPP_DEV_BUILD)
@@ -270,9 +280,11 @@ function(godotcpp_extension TARGET)
     # PREFIX "" 用来去掉 Unix 平台默认的 lib 前缀。
     # OUTPUT_NAME 拼接 GodotCPP_SUFFIX，得到带 feature tag 的文件名。
     set_target_properties(${TARGET} PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${_platform_bin_dir}"
-        LIBRARY_OUTPUT_DIRECTORY "${_platform_bin_dir}"
-        ARCHIVE_OUTPUT_DIRECTORY "${_platform_bin_dir}"
+        POSITION_INDEPENDENT_CODE ON
+        BUILD_RPATH_USE_ORIGIN ON
+        RUNTIME_OUTPUT_DIRECTORY "${_platform_bin_dir}" # windows .dll
+        LIBRARY_OUTPUT_DIRECTORY "${_platform_bin_dir}" # unix    .so
+        PDB_OUTPUT_DIRECTORY     "${_platform_bin_dir}" # MSVC Only, 默认与dll同目录, 这里显式写出
         PREFIX ""
         OUTPUT_NAME "${_name}${GodotCPP_SUFFIX}"
     )
@@ -295,6 +307,29 @@ function(godotcpp_extension TARGET)
         set(_reloadable "true")
     else()
         set(_reloadable "false")
+    endif()
+
+    # 可选：把 DOC_CLASSES 下的 XML 文档编译进扩展库。
+    # 仅 editor/template_debug 需要文档；template_release 跳过以减小体积。
+    if(NOT "${_ext_DOC_CLASSES}" STREQUAL "")
+        get_filename_component(_doc_dir "${_ext_DOC_CLASSES}" ABSOLUTE)
+        if(NOT IS_DIRECTORY "${_doc_dir}")
+            message(FATAL_ERROR
+                "godotcpp_extension: DOC_CLASSES='${_doc_dir}' is not a directory.")
+        endif()
+        file(GLOB_RECURSE _doc_xml LIST_DIRECTORIES NO CONFIGURE_DEPENDS
+            "${_doc_dir}/*.xml")
+        if(_doc_xml)
+            if(GodotCPP_TARGET STREQUAL "editor" OR
+                    GodotCPP_TARGET STREQUAL "template_debug")
+                if(NOT COMMAND target_doc_sources)
+                    message(FATAL_ERROR
+                        "godotcpp_extension: need target_doc_sources(), "
+                        "GodotCPPDoc.cmake not loaded.")
+                endif()
+                target_doc_sources(${TARGET} "${_doc_xml}")
+            endif()
+        endif()
     endif()
 
     # 生成 [libraries] 文本。这里不加引号展开 _ext_VARIANTS，

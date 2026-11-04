@@ -182,6 +182,7 @@ godotcpp_extension(<target>
     [RELOADABLE <布尔值>]
     [COMPATIBILITY_MINIMUM <版本>]
     [GODOT_PROJECT_DIR <目录>]
+    [DOC_CLASSES <目录>]
     [VARIANTS <platform|arch|extension>...]
 )
 ```
@@ -192,6 +193,7 @@ godotcpp_extension(<target>
 - `RELOADABLE`：控制 `.gdextension` 的 `reloadable`，按 CMake 布尔语义解析（`ON`/`OFF`、`TRUE`/`FALSE`、`YES`/`NO`、`1`/`0`），默认 `OFF`
 - `COMPATIBILITY_MINIMUM`：`.gdextension` 的 `compatibility_minimum`，决定可加载该扩展的最低 Godot 版本，默认 `GodotCPP_API_VERSION`
 - `GODOT_PROJECT_DIR`：给出时，构建后将产物复制到 `<目录>/bin/<扩展名>`，未给出时不复制；用于把编译产物直接复制到加载该扩展的 Godot 工程，省去手动拷贝，相对路径相对于 `CMAKE_CURRENT_SOURCE_DIR` 解析
+- `DOC_CLASSES`：可选，gdextension类文档所在目录；给出时递归收集该目录下的 `*.xml`，仅在 `GodotCPP_TARGET` 为 `editor` 或 `template_debug` 时调用 `target_doc_sources()` 将文档编译进扩展库，`template_release` 下跳过；相对路径相对于 `CMAKE_CURRENT_SOURCE_DIR` 解析
 - `VARIANTS`：覆盖默认库路径表，元素形如 `platform|arch|extension`；决定 `.gdextension` 中 `[libraries]` 配置表中声明的平台、架构与扩展名组合，默认覆盖 windows、linux、android
 
 函数还会在父作用域设置两个结果变量，供后续构建步骤读取：
