@@ -313,20 +313,11 @@ function(godotcpp_extension TARGET)
     # 仅 editor/template_debug 需要文档；template_release 跳过以减小体积。
     if(NOT "${_ext_DOC_CLASSES}" STREQUAL "")
         get_filename_component(_doc_dir "${_ext_DOC_CLASSES}" ABSOLUTE)
-        if(NOT IS_DIRECTORY "${_doc_dir}")
-            message(FATAL_ERROR
-                "godotcpp_extension: DOC_CLASSES='${_doc_dir}' is not a directory.")
-        endif()
         file(GLOB_RECURSE _doc_xml LIST_DIRECTORIES NO CONFIGURE_DEPENDS
             "${_doc_dir}/*.xml")
         if(_doc_xml)
             if(GodotCPP_TARGET STREQUAL "editor" OR
                     GodotCPP_TARGET STREQUAL "template_debug")
-                if(NOT COMMAND target_doc_sources)
-                    message(FATAL_ERROR
-                        "godotcpp_extension: need target_doc_sources(), "
-                        "GodotCPPDoc.cmake not loaded.")
-                endif()
                 target_doc_sources(${TARGET} "${_doc_xml}")
             endif()
         endif()
