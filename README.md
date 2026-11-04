@@ -61,6 +61,8 @@ cmake --workflow --preset windows-x86_64-release
 cmake --list-presets=all
 ```
 
+配置时会在 CMake 输出中打印当前变体的摘要：API 版本、平台/架构、target、精度/线程、库文件后缀、构建类型、编译器与安装前缀。
+
 ### 构建配置的两种表达
 
 构建配置同时写在两个位置，取值按 target 固定：`template_debug` 用 `RelWithDebInfo`，`template_release` 用 `Release`。
@@ -100,6 +102,8 @@ cmake --build --preset windows-x86_64-debug-install
 > MSVC 上 Debug 与 Release 默认使用不同的 CRT（`/MDd` 与 `/MD`，或 `/MTd` 与 `/MT`），STL 调试级别也随之不同，混用会在链接期报错 LNK2038。本项目把预编译库与消费端的 C 运行库统一为 `/MT`，CRT 与 STL 调试级别因此一致，因此支持使用者以与预编译库不同的构建配置链接。
 >
 > Linux 与 Android 上，Debug 与 Release 的差别在优化等级、调试信息与 `NDEBUG`，三者都不进入 ABI 与符号签名，默认不影响不同构建配置链接。
+>
+> 包还提供只读变量 `GodotCPP_RECOMMENDED_BUILD_TYPE`，按当前 target 给出推荐值；它不会自动写入 `CMAKE_BUILD_TYPE`，消费端可读取它作为提示，具体构建类型仍由消费端决定。
 
 ## 消费端接入
 
@@ -125,11 +129,14 @@ cmake -B build "-DGODOTCPP_TARGET=template_release"
 - `GodotCPP_PLATFORM` — 目标平台名，如 `windows`
 - `GodotCPP_ARCH` / `GodotCPP_TARGET` / `GodotCPP_PRECISION` / `GodotCPP_THREADS` — 本次选用变体在这四项上的取值，依次为目标架构、target、浮点精度、threads 开关
 - `GodotCPP_SUFFIX` — 库文件名后缀，如 `.windows.template_debug.x86_64`，用它拼接扩展库文件名即可与 `.gdextension` 中的路径声明一致
+- `GodotCPP_RECOMMENDED_BUILD_TYPE` — 按当前 target 推荐的构建类型：`template_debug` 为 `RelWithDebInfo`，`template_release` 为 `Release`，`editor` 暂按 `RelWithDebInfo`；消费端可自行按需根据该变量设置 `CMAKE_BUILD_TYPE`
 - `GodotCPP_VARIANT_DIR` — 本次选用变体所在目录
+
+`find_package(GodotCPP)` 默认在配置输出中打印所选变体摘要；使用 `find_package(GodotCPP QUIET)` 可关闭。
 
 包还提供消费端函数 `godotcpp_extension(...)`，用于统一设置产物命名并生成 `.gdextension`，参数见下一节。
 
-上述取值同时记录在 `GodotCPP::cpp` 的目标属性上，属性名为 `GODOTCPP_PLATFORM`、`GODOTCPP_TARGET`、`GODOTCPP_ARCH`、`GODOTCPP_PRECISION`、`GODOTCPP_SUFFIX`。
+上述平台、架构、target、精度与后缀取值同时记录在 `GodotCPP::cpp` 的目标属性上，属性名为 `GODOTCPP_PLATFORM`、`GODOTCPP_TARGET`、`GODOTCPP_ARCH`、`GODOTCPP_PRECISION`、`GODOTCPP_SUFFIX`。
 
 命名约定：`GODOTCPP_*`（全大写）由使用者在 CMakeLists.txt 中设置，用来指定使用哪一份预编译库；`GodotCPP_*` 在 `find_package` 完成后由包设置，供使用者读取。
 

@@ -57,10 +57,24 @@ function(godotcpp_prebuilt_install)
         set(_msvc_runtime "")
     endif()
 
-    message(STATUS "godot-cpp 预编译变体：${_variant_rel}")
-    message(STATUS "  平台/架构   : ${_platform} / ${_arch}")
-    message(STATUS "  库文件后缀  : ${_suffix}")
-    message(STATUS "  安装前缀    : ${CMAKE_INSTALL_PREFIX}")
+    if(GODOTCPP_THREADS)
+        set(_threads "withthreads")
+    else()
+        set(_threads "nothreads")
+    endif()
+    if(CMAKE_BUILD_TYPE)
+        set(_build_type "${CMAKE_BUILD_TYPE}")
+    else()
+        set(_build_type "multi-config (selected at build time)")
+    endif()
+
+    message(STATUS "GodotCPP ${GODOTCPP_API_VERSION} prebuilt variant:")
+    message(STATUS "  Platform/Arch: ${_platform} / ${_arch}")
+    message(STATUS "  Target/Precision/Threads: ${GODOTCPP_TARGET} / ${GODOTCPP_PRECISION} / ${_threads}")
+    message(STATUS "  Suffix: ${_suffix}")
+    message(STATUS "  Install prefix: ${CMAKE_INSTALL_PREFIX}")
+    message(STATUS "  Build type: ${_build_type}")
+    message(STATUS "  Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 
     # ---- 变体元数据 ----
     configure_file(

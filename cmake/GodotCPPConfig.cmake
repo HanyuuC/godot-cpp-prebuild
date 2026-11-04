@@ -32,8 +32,11 @@ godot-cpp 预编译包的配置文件，由 ``find_package(GodotCPP CONFIG)`` �
   .gdextension 的 ``compatibility_minimum``
 * ``GodotCPP_VARIANT_DIR``  实际选中的变体目录
 * ``GodotCPP_SUFFIX``       库文件名后缀，如 ``.windows.template_debug.x86_64``
+* ``GodotCPP_RECOMMENDED_BUILD_TYPE``  按当前 GodotCPP_TARGET 推荐的构建类型（提示值，不自动应用）
 * ``GodotCPP_PLATFORM`` / ``GodotCPP_ARCH`` / ``GodotCPP_TARGET`` /
-  ``GodotCPP_PRECISION`` / ``GodotCPP_THREADS``  实际选中的那一组配置
+  ``GodotCPP_PRECISION`` / ``GodotCPP_THREADS``  实际选中的配置组
+
+``find_package`` 默认在配置输出中打印所选变体摘要；``QUIET`` 时关闭。
 
 导入目标
 --------
@@ -104,6 +107,17 @@ endif()
 include("${GodotCPP_VARIANT_DIR}/GodotCPPVariant.cmake")
 include("${GodotCPP_VARIANT_DIR}/GodotCPPTargets.cmake")
 
+# 推荐构建类型：只作提示，不自动改写消费端的 CMAKE_BUILD_TYPE。
+# template_debug 对应预编译库的 RelWithDebInfo 构建，template_release 对应 Release。
+if(GodotCPP_TARGET STREQUAL "template_debug")
+    set(GodotCPP_RECOMMENDED_BUILD_TYPE "RelWithDebInfo")
+elseif(GodotCPP_TARGET STREQUAL "template_release")
+    set(GodotCPP_RECOMMENDED_BUILD_TYPE "Release")
+else()
+    # editor 变体没有固定 preset，按调试信息优先给 RelWithDebInfo。
+    set(GodotCPP_RECOMMENDED_BUILD_TYPE "RelWithDebInfo")
+endif()
+
 # ---- 3. 一致性检查 ----
 if(GodotCPP_COMPILER_ID AND NOT GodotCPP_COMPILER_ID STREQUAL CMAKE_CXX_COMPILER_ID)
     message(WARNING
@@ -139,3 +153,17 @@ set_target_properties(GodotCPP::cpp PROPERTIES
 )
 
 set(GodotCPP_FOUND TRUE)
+
+# 在配置输出中报告选中的变体，便于确认预编译包与消费端配置是否一致。
+# find_package(GodotCPP QUIET) 时不打印。
+if(NOT GodotCPP_FIND_QUIETLY)
+    message(STATUS "GodotCPP ${GodotCPP_API_VERSION} found:")
+    message(STATUS "  Platform/Arch: ${GodotCPP_PLATFORM} / ${GodotCPP_ARCH}")
+    message(STATUS "  Target/Precision/Threads: ${GodotCPP_TARGET} / ${GodotCPP_PRECISION} / ${_threads}")
+    message(STATUS "  Suffix: ${GodotCPP_SUFFIX}")
+    message(STATUS "  Variant dir: ${GodotCPP_VARIANT_DIR}")
+    message(STATUS "  Recommended build type: ${GodotCPP_RECOMMENDED_BUILD_TYPE}")
+    if(GodotCPP_COMPILER_ID)
+        message(STATUS "  Compiler: ${GodotCPP_COMPILER_ID} ${GodotCPP_COMPILER_VERSION}")
+    endif()
+endif()
